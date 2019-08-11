@@ -1,0 +1,41 @@
+---
+  
+  xander_user: xander
+  xander_group: xander
+  xander_home: /home/{{ xander_user }}
+
+  remote_ssh_key_file: .ssh/id_rsa
+  remote_ssh_pub_key_file: "{{ remote_ssh_key_file }}.pub"
+  known_hosts_path: "{{ xander_home }}/.ssh/known_hosts"
+  fingerprint_log: "{{ xander_home }}/.bitbucket_fingerprint.log"
+
+  deploy_script_path: "{{ xander_home }}/deploy.sh"
+  temp_clone_dir: "{{ xander_home }}/tempclone"
+  project_dir: "{{ xander_home }}/project"
+  project_dockerfile: "{{ project_dir }}/Dockerfile"
+  project_dockercompose: "{{ project_dir }}/docker-compose.yml"
+  project_docke_entryponint: "{{ project_dir }}/docker-entrypoint.sh"
+  project_dockerignore: "{{ project_dir }}/.dockerignore"
+  project_pm2xander: "{{ project_dir }}/xander.yml"
+
+  scripts_dir: "{{ xander_home }}/scripts"
+  script_backup_docker_postgres: "{{ scripts_dir }}/docker-postgres-backuper.sh"
+  script_restore_docker_postgres: "{{ scripts_dir }}/docker-postgres-restorer.sh"
+  script_backup_docker_mongo: "{{ scripts_dir }}/docker-mongo-backuper.sh"
+  script_restore_docker_mongo: "{{ scripts_dir }}/docker-mongo-restorer.sh"
+
+  docker_app_image_initital_build_log: "{{ xander_home }}/.app-image-initial-build.log"
+  docker_app_name: "{{ application_name }}"
+  docker_db: "{{ database_type }}"
+  docker_db_container_name: "{{ docker_app_name }}-db"
+  docker_restart: always
+  docker_app_proxy_port: 3000
+  docker_db_proxy_port: 4000
+
+  pm2_name: "{{ application_name }}-{{ application_env }}"
+
+  backups_dir: "{{ xander_home }}/backups"
+  cron_backups_database_minute: 0
+  cron_backups_database_hour: 2
+  command_backup_postgres: /bin/bash {{ script_backup_docker_postgres }} -c {{ docker_db_container_name }} -d {{ initial_db_name }} -u {{ initial_db_user }}  > /dev/null
+  command_backup_mongo: /bin/bash {{ script_backup_docker_mongo }} -c {{ docker_db_container_name }} -n {{ docker_app_name }} -u {{ initial_db_user }} -p {{ initial_db_user_password }} > /dev/null

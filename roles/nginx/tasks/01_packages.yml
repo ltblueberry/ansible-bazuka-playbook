@@ -1,0 +1,16 @@
+---
+  
+  - name: Install pre packages
+    apt:
+      name: "{{ nginx_pre_packages }}"
+      state: present
+
+  - name: Add nginx stable repository from PPA and install its signing key | On Ubuntu target
+    apt_repository:
+      repo: "{{ nginx_repo }}"
+    
+  - name: Install nginx packages
+    apt:
+      name: "{{ nginx_packages }}"
+      update_cache: yes
+      state: present

@@ -1,0 +1,27 @@
+---
+  
+  - name: Check fullchain.pem
+    stat:
+      path: "{{ certbot_cert_path }}/fullchain.pem"
+    when: domain_name is defined and domain_name != ""
+    register: fullchain_check
+
+  - name: Check privkey.pem
+    stat:
+      path: "{{ certbot_cert_path }}/privkey.pem"
+    when: domain_name is defined and domain_name != ""
+    register: privkey_check
+
+  - name: Copy virtualhost config | Default configuration
+    template: 
+      src: "{{ role_path }}/templates/default.conf.j2"
+      dest: "{{ nginx_config_dir }}/default.conf"
+    when: not domain_name is defined or domain_name == ""
+    notify: restart nginx
+
+  - name: Copy virtualhost config | Domain configuration
+    template: 
+      src: "{{ role_path }}/templates/domain.conf.j2"
+      dest: "{{ nginx_config_dir }}/{{ server_name }}.conf"
+    when: domain_name is defined and domain_name != ""
+    notify: restart nginx

@@ -1,0 +1,37 @@
+---
+  
+  - name: Pull an image | PostgreSQL
+    docker_image:
+      name: postgres
+      state: present
+    when: docker_db == "postgresql"
+  
+  - name: Pull an image | MongoDB
+    docker_image:
+      name: mongo
+      state: present
+    when: docker_db == "mongodb"
+
+  - name: Pull an image | NodeJS 11.x
+    docker_image:
+      name: node:11.6
+      state: present
+  
+  - name: Check app image initial build log exists
+    stat:
+      path: "{{ docker_app_image_initital_build_log }}"
+    register: initial_build_check
+
+  - name: Create {{ docker_app_image_initital_build_log }}
+    file: 
+      path: "{{ docker_app_image_initital_build_log }}"
+      owner: "{{ xander_user }}"
+      group: "{{ xander_group }}"    
+      mode: 0666
+      state: touch
+    when: initial_build_check.stat.exists == false 
+
+  - name: Prepare low layers of docker image for app | Exit with error, no project code yet
+    shell: cd {{ project_dir }} && docker-compose build >> {{ docker_app_image_initital_build_log }}
+    ignore_errors: yes
+    when: initial_build_check.stat.exists == false 

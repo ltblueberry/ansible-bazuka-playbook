@@ -1,0 +1,52 @@
+version: '3.5'
+
+networks:
+  {{ docker_app_name }}:
+    name: {{ docker_app_name }}
+
+services:
+{% if docker_db == "mongodb" %}      
+  db:
+    container_name: {{ docker_db_container_name }}
+    image: mongo
+    restart: always
+    networks:
+      - {{ docker_app_name }}
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: {{ initial_db_user }}
+      MONGO_INITDB_ROOT_PASSWORD: {{ initial_db_user_password }}
+    volumes:
+      - ./data/db:/data/db
+    ports:
+      - "{{ docker_db_proxy_port }}:27017"
+{% elif docker_db == "postgresql" %}
+  db:
+    container_name: {{ docker_db_container_name }}
+    image: postgres
+    restart: always
+    networks:
+      - {{ docker_app_name }}
+    environment:
+      POSTGRES_USER: {{ initial_db_user }}
+      POSTGRES_PASSWORD: {{ initial_db_user_password }}
+      POSTGRES_DB: {{ initial_db_name }}
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    ports:
+      - "{{ docker_db_proxy_port }}:5432"
+{% endif %}
+  app:
+    container_name: {{ docker_app_name }}-app
+    build: .
+    command: /bin/sh docker-entrypoint.sh
+    networks:
+      - {{ docker_app_name }}
+    volumes:
+      - ./public:/opt/app/public
+      - ./upload/:/opt/app/upload
+      - ./log/:/opt/app/log
+    restart: {{ docker_restart }}
+    ports:
+      - "127.0.0.1:{{ docker_app_proxy_port }}:3000"
+    links:
+      - db

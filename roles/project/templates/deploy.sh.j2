@@ -1,0 +1,32 @@
+#!/bin/sh
+
+echo "Docker Deploy"
+GIT_URL=$1
+BRANCH=$2
+PROJECT_DIR="{{ project_dir }}"
+TEMP_CLONE_DIR="{{ temp_clone_dir }}"
+GIT_DIR="$PROJECT_DIR/.git"
+echo "Check project gir directory exists: ""$GIT_DIR"
+if [ ! -d "$GIT_DIR" ]; then
+    git clone $GIT_URL $TEMP_CLONE_DIR
+    cd $TEMP_CLONE_DIR
+    echo "git: checkout $BRANCH"
+    git checkout $BRANCH
+    mv $TEMP_CLONE_DIR/{.[!.],}* $PROJECT_DIR
+    rm -rf $TEMP_CLONE_DIR
+    cd $PROJECT_DIR
+    docker-compose build
+    docker-compose up -d db
+else
+    cd $PROJECT_DIR
+    echo "git: checkout $BRANCH"
+    git checkout $BRANCH
+fi
+echo "Stop app container"
+docker-compose stop app
+echo "Pulling changes"
+git pull --rebase
+echo "Build and run app container"
+docker-compose up --build -d app
+echo "Remove docker dangling images"
+docker images --quiet --filter=dangling=true | xargs --no-run-if-empty docker rmi

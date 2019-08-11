@@ -1,0 +1,54 @@
+---
+
+  - name: Install Certbot
+    package: 
+      name: "{{ certbot_package }}"
+      state: present
+
+  - name: Check certificates
+    stat:
+      path: /etc/letsencrypt/live/{{ domain_name }}/cert.pem
+    register: certs_check
+
+  - name: Stop nginx service to generate certificates | If check certificates failed
+    service:
+      name: "{{ nginx_service }}"
+      state: stopped
+    when: not certs_check.stat.exists
+
+  - name: Generate new certificates | If check certificates failed
+    command: "{{ certbot_command }}"
+    when: not certs_check.stat.exists
+    tags: cert_gen
+    
+  - name: Check fullchain.pem
+    stat:
+      path: "{{ certbot_cert_path }}/fullchain.pem"
+    register: fullchain_check
+    when: not certs_check.stat.exists
+
+  - name: Check privkey.pem
+    stat:
+      path: "{{ certbot_cert_path }}/privkey.pem"
+    register: privkey_check
+    when: not certs_check.stat.exists
+
+  - name: Copy virtualhost config with certificates paths 
+    template: 
+      src: "{{ role_path }}/templates/domain.conf.j2"
+      dest: "{{ nginx_config_dir }}/{{ server_name }}.conf"
+    when: not certs_check.stat.exists
+
+  - name: Start nginx service with generated certificates | If check certificates failed
+    service:
+      name: "{{ nginx_service }}"
+      state: started
+    when: not certs_check.stat.exists
+
+  - name: Add cron job certbot renewal certificates
+    cron:
+      name: Certbot | Automatic renewal certificates
+      job: "{{ certbot_script }} renew {{ certbot_renew_options }}"
+      minute: "{{ certbot_renew_cron_minute }}"
+      hour: "{{ certbot_renew_cron_hour }}"
+      user: "{{ certbot_renew_cron_user }}"

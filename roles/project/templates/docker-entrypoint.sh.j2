@@ -1,0 +1,5 @@
+#!/bin/sh
+
+echo "Docker Entrypoint"
+echo "Node Environment: {{ application_env }}"
+pm2-runtime xander.yml --env {{ application_env }}

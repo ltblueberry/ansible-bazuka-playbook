@@ -1,0 +1,9 @@
+---
+
+  - name: Create user with name '{{ xander_user }}'
+    user:
+      name: "{{ xander_user }}"
+      shell: /bin/bash
+      groups: docker
+      append: yes
+      state: present

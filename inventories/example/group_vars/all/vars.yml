@@ -1,0 +1,29 @@
+# Ansible superuser and superuser
+superuser: ansible
+supergroup: ansible
+
+# Base vars
+local_ssh_pub_key: /home/ansible/.ssh/ansible_rsa.pub
+pipeline_ssh_pub_key: /home/ansible/.ssh/pipeline-example.pub
+
+# Database initial vars
+initial_db_name: example
+initial_db_user: root
+initial_db_user_password: "{{ vault_initial_db_user_password }}"
+
+# Nginx inventory vars
+# domain_name: specified in hosts # if not define - nginx apply default config (and no certbot)
+server_name: example
+letsencrypt_email: example@example.ru
+
+# Switch between database type (to exec specific db role and proxy in nginx config)
+# Values: mongodb/postgresql/none
+database_type: mongodb
+
+# Server application 
+application_name: example
+# application_env: specified in hosts
+application_base_url: "{% if domain_name is defined %}{{ domain_name }}{% else %}http://localhost:3000{% endif %}"
+
+enckey_pswd: "{{ vault_enckey_pswd }}"
+enckey_salt: "{{ vault_enckey_salt }}"

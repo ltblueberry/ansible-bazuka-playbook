@@ -1,0 +1,14 @@
+---
+  - name: Update repositories cache and install base packages
+    apt:
+      name: "{{ base_packages }}"
+      update_cache: yes
+      state: present
+
+  - name: Install python packages
+    apt:
+      force_apt_get: yes
+      name: "{{ base_python_packages }}"
+      install_recommends: yes
+      state: present
+    

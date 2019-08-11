@@ -1,0 +1,9 @@
+---
+  - name: Create user with name '{{ sudouser }}'
+    user:
+      name: "{{ sudouser }}"
+      shell: /bin/bash
+      groups: 
+        - "{{ sudogroup }}"
+      append: yes
+      state: present

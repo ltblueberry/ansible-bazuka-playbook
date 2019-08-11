@@ -1,0 +1,13 @@
+.env
+.dockerignore
+Dockerfile
+docker-compose.yml
+.git
+.gitignore
+node_modules
+bitbucket-pipelines.yml
+README.md
+data
+public
+upload
+log

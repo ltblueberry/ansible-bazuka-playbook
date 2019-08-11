@@ -1,0 +1,87 @@
+---
+  - name: Ensure project directory exists
+    file:
+      path: "{{ item }}"
+      state: directory
+      owner: "{{ xander_user }}"
+      group: "{{ xander_group }}"
+      mode: 0700
+    with_items:
+      - "{{ project_dir }}"
+      - "{{ scripts_dir }}"
+      - "{{ backups_dir }}"
+  
+  - name: Copy project files
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: "{{ xander_user }}"
+      group: "{{ xander_group }}"
+      mode: 0600
+    with_items:
+      - { src: "{{ role_path }}/files/Dockerfile", dest: "{{ project_dockerfile }}" }
+      - { src: "{{ role_path }}/files/.dockerignore", dest: "{{ project_dockerignore }}" }
+  
+  - name: Copy project templates
+    template: 
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: "{{ xander_user }}"
+      group: "{{ xander_group }}"
+      mode: 0600
+    with_items:
+      - { src: "{{ role_path }}/templates/docker-compose.yml.j2", dest: "{{ project_dockercompose }}" }
+      - { src: "{{ role_path }}/templates/docker-entrypoint.sh.j2", dest: "{{ project_docke_entryponint }}" }
+      - { src: "{{ role_path }}/templates/xander.yml.j2", dest: "{{ project_pm2xander }}" }
+
+  - name: Copy deploy script
+    template: 
+      src: "{{ role_path }}/templates/deploy.sh.j2"
+      dest: "{{ deploy_script_path }}"
+      owner: "{{ xander_user }}"
+      group: "{{ xander_group }}"
+      mode: 0700
+
+  - name: Copy postgres backup/restore scripts
+    template: 
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: "{{ xander_user }}"
+      group: "{{ xander_group }}"
+      mode: 0755
+    with_items:
+      - { src: "{{ role_path }}/templates/docker-postgres-backuper.sh.j2", dest: "{{ script_backup_docker_postgres }}" }
+      - { src: "{{ role_path }}/templates/docker-postgres-restorer.sh.j2", dest: "{{ script_restore_docker_postgres }}" }
+    when: docker_db == "postgresql"
+
+  - name: Copy mongo backup/restore scripts
+    template: 
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: "{{ xander_user }}"
+      group: "{{ xander_group }}"
+      mode: 0755
+    with_items:
+      - { src: "{{ role_path }}/templates/docker-mongo-backuper.sh.j2", dest: "{{ script_backup_docker_mongo }}" }
+      - { src: "{{ role_path }}/templates/docker-mongo-restorer.sh.j2", dest: "{{ script_restore_docker_mongo }}" }
+    when: docker_db == "mongodb"
+
+  - name: Add cron job backup postgres database
+    cron:
+      name: PostgreSQL | Automatic backup database
+      job: "{{ command_backup_postgres }}"
+      minute: "{{ cron_backups_database_minute }}"
+      hour: "{{ cron_backups_database_hour }}"
+      user: "{{ xander_user }}"
+    when: docker_db == "postgresql"
+
+  - name: Add cron job backup mongo database
+    cron:
+      name: PostgreSQL | Automatic backup database
+      job: "{{ command_backup_mongo }}"
+      minute: "{{ cron_backups_database_minute }}"
+      hour: "{{ cron_backups_database_hour }}"
+      user: "{{ xander_user }}"
+    when: docker_db == "mongodb"
+  
+  

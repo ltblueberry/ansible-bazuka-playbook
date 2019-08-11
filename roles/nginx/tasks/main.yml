@@ -1,0 +1,20 @@
+---
+  
+  - name: Install Packages
+    include: 01_packages.yml
+    tags: packages
+
+  - name: Remove default nginx config
+    file: 
+      name: "{{ nginx_default }}"
+      state: absent
+
+  - name: Configure virtual host
+    include: 02_virthost.yml
+    tags: virthost
+
+  - name: Certbot configure
+    include: 03_certbot.yml
+    when: domain_name is defined and domain_name != ""
+    tags: certbot
+  

@@ -1,0 +1,26 @@
+--- 
+
+  - name: Ensure docker installer exists
+    stat:
+      path: "{{ docker_installer_path }}"
+    register: docker_installer_check
+
+  - name: Download docker installer
+    get_url: 
+      url: "{{ docker_installer_url }}"
+      dest: "{{ docker_installer_path }}"
+      owner: "{{ sudouser }}"
+      group: "{{ sudogroup }}"
+      mode: 555
+    when: docker_installer_check.stat.exists == false 
+  
+  - name: Execute docker installer
+    shell: "{{ docker_installer_path }} >> {{ docker_installer_log }}" 
+    args:
+      creates: "{{ docker_installer_log }}"
+
+  - name: Install docker-compose
+    pip:
+      name: docker-compose==1.23
+      state: present
+  

@@ -1,0 +1,41 @@
+#!/bin/bash
+
+SYNTAX_ERROR_MESSAGE="Invalid syntaxis! Arguments must be -c <container_name> -d <database_name> -u <db admin username>"
+
+#Variables from parameters
+
+#Container name (check "container_name" section in docker-compose.yml)
+if [ "$1" != "-c" ]; then
+    echo "$SYNTAX_ERROR_MESSAGE"
+    exit 1
+fi
+CONTAINER=$2
+
+#Database name (check postgres env variables in docker-compose.yml)
+if [ "$3" != "-d" ]; then
+    echo "$SYNTAX_ERROR_MESSAGE"
+    exit 1
+fi
+DB_NAME=$4
+
+#Database user (check postgres env variables in docker-compose.yml)
+if [ "$5" != "-u" ]; then
+    echo "$SYNTAX_ERROR_MESSAGE"
+    exit 1
+fi
+DB_USERNAME=$6
+
+#Define current backup file
+BACKUP_DIR={{ backups_dir }}/backup-$(date "+%Y%m%d-%H%M%S%s")
+BACKUP_FILE_NAME=`date +%Y-%m-%d-%H-%M-%S-%s`-$CONTAINER.sql
+BACKUP_FILE_PATH=$BACKUP_DIR/$BACKUP_FILE_NAME
+rm -rf $BACKUP_DIR && mkdir -p $BACKUP_DIR
+rm -rf $BACKUP_FILE_PATH
+
+docker exec -t $CONTAINER pg_dump $DB_NAME -U $DB_USERNAME -c > $BACKUP_FILE_PATH
+
+#Make .tag.gz archive with backup data
+tar -zcvf {{ backups_dir }}/$(date +"%Y-%m-%d-%H-%M-%S-%s")-$CONTAINER.tar.gz -C $BACKUP_DIR $BACKUP_FILE_NAME
+
+#Remove current backup temp dir
+rm -rf $BACKUP_DIR

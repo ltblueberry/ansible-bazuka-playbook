@@ -1,0 +1,13 @@
+---
+  - name: Make sure we have a {{ sudogroup }} group
+    group:
+      name: "{{ sudogroup }}"
+      state: present
+
+  - name: Add non-password sudo rights to {{ sudogroup }} group
+    lineinfile:
+      path: /etc/sudoers
+      state: present
+      regexp: '^%{{ sudogroup }}'
+      line: '%{{ sudogroup }} ALL=(ALL) NOPASSWD: ALL'
+      validate: 'visudo -cf %s'

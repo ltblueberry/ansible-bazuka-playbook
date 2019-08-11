@@ -1,0 +1,48 @@
+#!/bin/bash
+
+SYNTAX_ERROR_MESSAGE="Invalid syntaxis! Arguments must be -c <container_name> -n <network_name> -u <db admin username> -p <db admin password>"
+
+#Variables from parameters
+
+#Container name (check "container_name" section in docker-compose.yml)
+if [ "$1" != "-c" ]; then
+    echo "$SYNTAX_ERROR_MESSAGE"
+    exit 1
+fi
+CONTAINER=$2
+#Network (check "network" section in docker-compose.yml)
+if [ "$3" != "-n" ]; then
+    echo "$SYNTAX_ERROR_MESSAGE"
+    exit 1
+fi
+NET=$4
+
+#Database credentials (check mongo env variables in docker-compose.yml)
+if [ "$5" != "-u" ]; then
+    echo "$SYNTAX_ERROR_MESSAGE"
+    exit 1
+fi
+if [ "$7" != "-p" ]; then
+    echo "$SYNTAX_ERROR_MESSAGE"
+    exit 1
+fi
+DB_USERNAME=$6
+DB_PASSWORD=$8
+
+#Define current backup temp dir
+BACKUP_DIR={{ backups_dir }}/backup-$(date "+%Y%m%d-%H%M%S%s")
+rm -rf $BACKUP_DIR && mkdir -p $BACKUP_DIR
+
+#Mongodump command to backup
+COMMAND='mongodump --out /backup --host mongo:27017 --username '"$DB_USERNAME"' --password '"$DB_PASSWORD"
+CHMOD_COMMAND='chmod -R 777 /backup'
+
+#Run command with linked container
+docker run --rm --link $CONTAINER:mongo --net $NET -v $BACKUP_DIR:/backup mongo \
+ bash -c "$COMMAND && $CHMOD_COMMAND"
+
+#Make .tag.gz archive with backup data
+tar -zcvf {{ backups_dir }}/$(date +"%Y-%m-%d-%H-%M-%S-%s")-$CONTAINER.tar.gz -C $BACKUP_DIR .
+
+#Remove current backup temp dir
+rm -rf $BACKUP_DIR

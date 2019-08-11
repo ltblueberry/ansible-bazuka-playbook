@@ -1,0 +1,20 @@
+nginx_repo: ppa:nginx/stable
+nginx_pre_packages:
+  - software-properties-common
+  - python-simplejson
+nginx_packages:
+  - nginx
+nginx_config_dir: /etc/nginx/conf.d
+nginx_config_file: /etc/nginx/nginx.conf
+nginx_default: /etc/nginx/sites-enabled/default
+nginx_service: nginx
+
+certbot_package: letsencrypt
+certbot_script: "{{ certbot_package }}"
+certbot_cert_path: /etc/letsencrypt/live/{{ domain_name }}
+certbot_command: "{{ certbot_script }} certonly --standalone --noninteractive --agree-tos --email {{ letsencrypt_email }} -d {{ domain_name }}"
+
+certbot_renew_options: "--quiet --no-self-upgrade"
+certbot_renew_cron_minute: 0
+certbot_renew_cron_hour: 2
+certbot_renew_cron_user: "{{ ansible_user }}"

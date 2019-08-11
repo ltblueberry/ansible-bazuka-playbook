@@ -1,0 +1,24 @@
+---
+  base_packages:
+    - sudo
+    - vim
+    - curl
+    - git
+    - zip
+    - unzip
+    - htop
+    - openssh-client
+    - openssh-server
+  base_python_packages:
+    - python-pip
+    - python3-pip
+    - python-setuptools
+    - python-virtualenv
+    - python-dev
+    - python-simplejson
+  sudouser: "{{ superuser }}"
+  sudogroup: "{{ supergroup }}"
+
+  docker_installer_url: https://get.docker.com/
+  docker_installer_path: /home/{{ sudouser }}/.docker_installer.sh
+  docker_installer_log: .docker_installer.log

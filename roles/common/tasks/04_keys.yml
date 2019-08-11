@@ -1,0 +1,6 @@
+--- 
+  - name: Set {{ sudouser }} user authorized key taken from file {{ local_ssh_pub_key }}
+    authorized_key:
+      user: "{{ sudouser }}"
+      state: present
+      key: "{{ lookup('file', '{{ local_ssh_pub_key }}') }}"

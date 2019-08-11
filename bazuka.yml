@@ -1,0 +1,28 @@
+---
+  
+  # Install all common infrastucture
+  - hosts: hosts
+    become: yes
+    tags: common
+    roles:
+      - role: common
+        vars:
+          ansible_user: root
+  
+  # Install Nginx
+  - hosts: hosts
+    become: yes
+    tags: nginx
+    roles:
+      - role: nginx
+        vars:
+          ansible_user: "{{ superuser }}"
+
+  # Prepare for project deploy
+  - hosts: hosts
+    become: yes
+    tags: project
+    roles:
+      - role: project
+        vars:
+          ansible_user: "{{ superuser }}"

@@ -1,0 +1,17 @@
+apps:
+  - script: "bin/www"
+    name: "{{ pm2_name }}"
+    env_{{ application_env }}:
+      NODE_ENV: "{{ application_env }}"
+      BASE_URL: "{{ application_base_url }}"
+{% if enckey_pswd is defined %}
+      ENCKEY_PSWD: "{{ enckey_pswd }}"
+{% endif %}
+{% if enckey_salt is defined %}
+      ENCKEY_SALT: "{{ enckey_salt }}"
+{% endif %}
+{% if docker_db == "mongodb" %}
+      DATABASE_CONNECTION_STRING: "mongodb://{{ initial_db_user }}:{{ initial_db_user_password }}@db/{{ initial_db_name }}?authSource=admin&authMechanism=SCRAM-SHA-1"
+{% elif docker_db == "postgresql" %}
+      DATABASE_CONNECTION_STRING: "postgresql://{{ initial_db_user }}:{{ initial_db_user_password }}@db/{{ initial_db_name }}"
+{% endif %}

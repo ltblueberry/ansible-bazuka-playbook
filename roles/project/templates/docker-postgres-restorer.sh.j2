@@ -1,0 +1,58 @@
+#!/bin/bash
+
+SYNTAX_ERROR_MESSAGE="Invalid syntaxis! Arguments must be -c <container_name> -d <database_name> -u <db admin username> -f <backup file tar.gz>"
+
+#Variables from parameters
+
+#Container name (check "container_name" section in docker-compose.yml)
+if [ "$1" != "-c" ]; then
+    echo "$SYNTAX_ERROR_MESSAGE"
+    exit 1
+fi
+CONTAINER=$2
+
+#Database name (check postgres env variables in docker-compose.yml)
+if [ "$3" != "-d" ]; then
+    echo "$SYNTAX_ERROR_MESSAGE"
+    exit 1
+fi
+DB_NAME=$4
+
+#Database user (check postgres env variables in docker-compose.yml)
+if [ "$5" != "-u" ]; then
+    echo "$SYNTAX_ERROR_MESSAGE"
+    exit 1
+fi
+DB_USERNAME=$6
+
+if [ "$7" != "-f" ]; then
+    echo "$SYNTAX_ERROR_MESSAGE"
+    exit 1
+fi
+
+#Define current restore temp dir
+RESTORE_DIR={{ backups_dir }}/restore-$(date "+%Y%m%d-%H%M%S%s")
+rm -rf $RESTORE_DIR && mkdir -p $RESTORE_DIR
+
+#Backup file to restore
+BACKUP_FILE=${8}
+echo "$BACKUP_FILE"
+if [[ $BACKUP_FILE =~ \.tar.gz$ ]];
+then
+        echo "Extracting backup .tar.gz file into: "$RESTORE_DIR
+        tar -xf $BACKUP_FILE -C $RESTORE_DIR
+else
+        FILENAME=$(echo $BACKUP_FILE | sed 's/.*\///')
+        cp $BACKUP_FILE $RESTORE_DIR$FILENAME
+fi
+
+RESTORE_FILE_NAME=$(ls $RESTORE_DIR | sort -n | head -1)
+RESTORE_FILE_PATH=$RESTORE_DIR/$RESTORE_FILE_NAME
+RESTORE_FILE_DOCKER_PATH=/root/$RESTORE_FILE_NAME
+
+docker cp $RESTORE_FILE_PATH $CONTAINER:$RESTORE_FILE_DOCKER_PATH
+docker exec -t $CONTAINER psql $DB_NAME -U $DB_USERNAME -f $RESTORE_FILE_DOCKER_PATH
+
+#Remove current restore files
+rm -rf $RESTORE_DIR
+docker exec -t $CONTAINER bash -c "rm -rf $RESTORE_FILE_DOCKER_PATH"

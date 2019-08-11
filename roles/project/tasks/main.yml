@@ -1,0 +1,16 @@
+---
+  - name: Create '{{ xander_user }}' user
+    include: 01_user.yml
+    tags: user
+  
+  - name: Manage user's SSH-keys
+    include: 02_keys.yml
+    tags: keys
+
+  - name: Prepare for project deploy
+    include: 03_project.yml
+    tags: project
+
+  - name: Pull and build all docker images for project
+    include: 04_images.yml
+    tags: images

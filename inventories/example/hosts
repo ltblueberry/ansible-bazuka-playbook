@@ -1,0 +1,4 @@
+[hosts]
+staging ansible_host=192.168.100.100 ansible_python_interpreter=/usr/bin/python3 application_env=staging domain_name=staging.example.com
+#production ansible_host=192.168.100.101 ansible_python_interpreter=/usr/bin/python3 application_env=production domain_name=example.com
+

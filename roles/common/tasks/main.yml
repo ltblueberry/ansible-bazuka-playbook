@@ -1,0 +1,23 @@
+---
+  - name: Install Packages
+    include: 01_packages.yml
+    tags: packages
+  
+  - name: Check '{{ sudogroup }}' group
+    include: 02_sudogroup.yml
+    tags: sudogroup
+
+  - name: Create an ansible superuser
+    include: 03_superuser.yml
+    tags: superuser
+  
+  - name: Manage User SSH-keys
+    include: 04_keys.yml
+    tags: keys
+
+  - name: Install docker (with docker-compose)
+    include: 05_docker.yml
+    tags: docker
+
+      
+  
